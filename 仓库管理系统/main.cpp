@@ -27,6 +27,26 @@ struct InOutRecord {
     string operatorName;  // 出/入库经办人
 };
 
+// 工具类
+class Util {
+public:
+    // 将输入的时间字符串转换为时间戳（格式：yyyy-MM-dd HH:mm:ss）
+    static time_t formatTime(string timeStr) {
+        if (timeStr.empty() || timeStr.length() < 19) {
+            return time_t(-1);
+        }
+        istringstream ss(timeStr);
+        tm tm = {};
+        ss >> get_time(&tm, "%Y-%m-%d %H:%M:%S");
+        if (ss.fail()) {
+            return time_t(-1);
+        }
+        else {
+            return mktime(&tm);
+        }
+    }
+};
+
 class WarehouseManagement {
 public:
     vector<Goods> goodsList;  // 存储商品信息的列表
@@ -46,7 +66,7 @@ public:
                 ss.ignore();
                 ss >> good.totalQuantity;
                 ss.ignore();
-                // 解析时间等其他信息，此处省略具体解析细节，根据实际文件格式来定
+                // TODO: 解析时间等其他信息
                 goodsList.push_back(good);
             }
             file.close();
@@ -60,7 +80,7 @@ public:
             for (const auto& good : goodsList) {
                 // 按格式将商品信息写入文件，例如：
                 file << good.code << "," << good.name << "," << good.category << "," << good.price << "," << good.totalQuantity << endl;
-                // 写入其他相关信息，如保质期、出入库记录等，省略详细代码
+                // TODO: 写入其他相关信息，如保质期、出入库记录等
             }
             file.close();
         }
@@ -97,9 +117,16 @@ public:
             cout << "请输入商品价格: ";
             cin >> newGood.price;
             cout << "请输入保质期（格式：xxxx-xx-xx xx:xx:xx）: ";
+            getchar();
             string timeStr;
-            cin >> timeStr;
-            newGood.expirationDate = Util::formatTime(timeStr);
+            getline(cin, timeStr);
+            time_t expirationDate = Util::formatTime(timeStr);
+            while (expirationDate == time_t(-1)) {
+                cout << "时间格式错误，请重新输入: ";
+                cin >> timeStr;
+                expirationDate = Util::formatTime(timeStr);
+            }
+            newGood.expirationDate = expirationDate;
             goodsList.push_back(newGood);
         }
     }
@@ -129,7 +156,7 @@ public:
             cout << "商品类别: " << good.category << endl;
             cout << "商品价格: " << good.price << endl;
             cout << "商品总量: " << good.totalQuantity << endl;
-            // 显示其他信息，如保质期、出入库记录等，省略详细代码
+            // TODO: 显示其他信息，如保质期、出入库记录等
             cout << "-------------------------" << endl;
         }
     }
@@ -166,7 +193,7 @@ public:
                 cout << "商品类别: " << good.category << endl;
                 cout << "商品价格: " << good.price << endl;
                 cout << "商品总量: " << good.totalQuantity << endl;
-                // 输出其他相关信息，如保质期、出入库记录等，省略详细代码
+                // TODO: 输出其他相关信息，如保质期、出入库记录等
             }
         }
     }
@@ -175,7 +202,7 @@ public:
     void queryInOutRecords(const string& code, const string& startDate = "", const string& endDate = "") {
         int index = findGoodsIndex(code);
         if (index != -1) {
-            // 根据传入的时间范围筛选并输出出入库记录，省略详细的时间处理和筛选逻辑代码
+            // TODO: 根据传入的时间范围筛选并输出出入库记录
             for (const auto& record : goodsList[index].inOutRecords) {
                 cout << "时间: " << ctime(&record.first);
                 cout << "数量: " << record.second << endl;
@@ -185,12 +212,12 @@ public:
 
     // 按入库日期查询入库信息
     void queryInByDate(const string& date, const string& endDate = "") {
-        // 处理日期，遍历商品的出入库记录，筛选出符合条件的入库记录并输出，省略详细代码
+        // TODO: 处理日期，遍历商品的出入库记录，筛选出符合条件的入库记录并输出
     }
 
     // 按出库日期查询出库信息
     void queryOutByDate(const string& date, const string& endDate = "") {
-        // 类似入库日期查询逻辑，处理并输出符合条件的出库记录，省略详细代码
+        // TODO: 类似入库日期查询逻辑，处理并输出符合条件的出库记录
     }
 
     // 显示快到保质期的商品（m天后过期）
@@ -226,25 +253,8 @@ public:
     }
 };
 
-class Util {
-public:
-    // 将输入的时间字符串转换为时间戳（格式：yyyy-MM-dd HH:mm:ss）
-    static time_t formatTime(string timeStr) {
-        istringstream ss(timeStr);
-        tm tm = {};
-        ss >> get_time(&tm, "%Y-%m-%d %H:%M:%S");
-        if (ss.fail()) {
-            // 处理解析失败
-            cerr << "时间格式错误" << endl;
-        }
-        else {
-            return mktime(&tm);
-        }
-    }
-};
-
 int main() {
-    WarehouseManagement warehouse("goods.txt");  // 假设从goods.txt文件初始化仓库
+    WarehouseManagement warehouse("goods.txt");  // 从goods.txt文件初始化仓库
 
     int choice;
     do {
@@ -275,8 +285,15 @@ int main() {
             cin >> record.code;
             cout << "请输入入库时间（格式：xxxx-xx-xx xx:xx:xx）: ";
             string timeStr;
-            cin >> timeStr;
-            record.inOutTime = Util::formatTime(timeStr);
+            getchar();
+            getline(cin, timeStr);
+            time_t inTime = Util::formatTime(timeStr);
+            while (inTime == time_t(-1)) {
+                cout << "时间格式错误，请重新输入: ";
+                cin >> timeStr;
+                inTime = Util::formatTime(timeStr);
+            }
+            record.inOutTime = inTime;
             cout << "请输入入库数量: ";
             cin >> record.quantity;
             cout << "请输入经办人: ";
