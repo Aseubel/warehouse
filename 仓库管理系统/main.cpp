@@ -99,17 +99,7 @@ public:
             cout << "请输入保质期（格式：xxxx-xx-xx xx:xx:xx）: ";
             string timeStr;
             cin >> timeStr;
-            // 将输入的时间字符串转换为时间戳
-            istringstream ss(timeStr);
-            tm tm = {};
-            ss >> get_time(&tm, "%Y-%m-%d %H:%M:%S");
-            if (ss.fail()) {
-                // 处理解析失败
-                cerr << "时间格式错误" << endl;
-            }
-            else {
-                newGood.expirationDate = mktime(&tm);
-            }
+            newGood.expirationDate = Util::formatTime(timeStr);
             goodsList.push_back(newGood);
         }
     }
@@ -286,17 +276,7 @@ int main() {
             cout << "请输入入库时间（格式：xxxx-xx-xx xx:xx:xx）: ";
             string timeStr;
             cin >> timeStr;
-            // 将输入的时间字符串转换为时间戳
-            istringstream ss(timeStr);
-            tm tm = {};
-            ss >> get_time(&tm, "%Y-%m-%d %H:%M:%S");
-            if (ss.fail()) {
-                // 处理解析失败
-                cerr << "时间格式错误" << endl;
-            }
-            else {
-                record.inOutTime = mktime(&tm);
-            }
+            record.inOutTime = Util::formatTime(timeStr);
             cout << "请输入入库数量: ";
             cin >> record.quantity;
             cout << "请输入经办人: ";
