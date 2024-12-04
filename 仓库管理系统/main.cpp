@@ -45,6 +45,17 @@ public:
             return mktime(&tm);
         }
     }
+
+    // 将时间戳转换为字符串（格式：yyyy-MM-dd HH:mm:ss）
+    static string formatTime(time_t timeStamp) {
+        if (timeStamp == time_t(-1)) {
+            return "";
+        }
+        tm* ptm = localtime(&timeStamp);
+        char buffer[64] = {};
+        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", ptm);
+        return buffer;
+    }
 };
 
 class WarehouseManagement {
@@ -156,7 +167,7 @@ public:
             cout << "商品类别: " << good.category << endl;
             cout << "商品价格: " << good.price << endl;
             cout << "商品总量: " << good.totalQuantity << endl;
-            // TODO: 显示其他信息，如保质期、出入库记录等
+            cout << "保质期：" << Util::formatTime(good.expirationDate) << endl;
             cout << "-------------------------" << endl;
         }
     }
