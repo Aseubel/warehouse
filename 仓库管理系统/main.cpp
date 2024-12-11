@@ -68,6 +68,9 @@ public:
         if (file.is_open()) {
             string line;
             while (getline(file, line)) {
+                if (line.empty() || line[0]=='\n' || line[0]=='#') {
+                    continue;
+                }
                 Goods good;
                 stringstream ss(line);
                 getline(ss, good.code, ',');
@@ -78,6 +81,22 @@ public:
                 ss >> good.totalQuantity;
                 ss.ignore();
                 // TODO: 解析时间等其他信息
+                ss >> good.expirationDate;
+                ss.ignore();
+                int recordCount;
+                ss >> recordCount;
+                ss.ignore();
+                vector<pair<time_t, int>> inOutRecords;
+                for (int i = 0; i < recordCount; ++i) {
+                    time_t inOutTimeStr;
+                    int quantity;
+                    ss >> inOutTimeStr;
+                    ss.ignore();
+                    ss >> quantity;
+                    ss.ignore();
+                    inOutRecords.push_back(make_pair(inOutTimeStr, quantity));
+                }
+                good.inOutRecords = inOutRecords;
                 goodsList.push_back(good);
             }
             file.close();
@@ -90,8 +109,13 @@ public:
         if (file.is_open()) {
             for (const auto& good : goodsList) {
                 // 按格式将商品信息写入文件，例如：
-                file << good.code << "," << good.name << "," << good.category << "," << good.price << "," << good.totalQuantity << endl;
-                // TODO: 写入其他相关信息，如保质期、出入库记录等
+                file << good.code << "," << good.name << "," << good.category << "," 
+                    << good.price << "," << good.totalQuantity << "," << good.expirationDate << ",";
+                file << good.inOutRecords.size() << ",";
+                for (const auto& record : good.inOutRecords) {
+                    file << record.first << "," << record.second << ",";
+                }
+                file << endl;
             }
             file.close();
         }
@@ -128,13 +152,13 @@ public:
             cout << "请输入商品价格: ";
             cin >> newGood.price;
             cout << "请输入保质期（格式：xxxx-xx-xx xx:xx:xx）: ";
-            getchar();
             string timeStr;
+            getline(cin, timeStr);
             getline(cin, timeStr);
             time_t expirationDate = Util::formatTime(timeStr);
             while (expirationDate == time_t(-1)) {
                 cout << "时间格式错误，请重新输入: ";
-                cin >> timeStr;
+                getline(cin, timeStr);
                 expirationDate = Util::formatTime(timeStr);
             }
             newGood.expirationDate = expirationDate;
@@ -178,7 +202,7 @@ public:
         for (const auto& good : goodsList) {
             if (good.expirationDate < now) {
                 cout << "过期商品：" << good.name << endl;
-                // 可详细输出更多该商品信息，省略代码
+                // 可详细输出更多该商品信息
             }
         }
     }
@@ -189,7 +213,8 @@ public:
             if (good.category == category) {
                 cout << "商品代码: " << good.code << endl;
                 cout << "商品名称: " << good.name << endl;
-                // 输出其他相关信息，省略代码
+                cout << "商品价格: " << good.price << endl;
+                cout << "商品总量: " << good.totalQuantity << endl;
                 cout << "-------------------------" << endl;
             }
         }
@@ -204,7 +229,11 @@ public:
                 cout << "商品类别: " << good.category << endl;
                 cout << "商品价格: " << good.price << endl;
                 cout << "商品总量: " << good.totalQuantity << endl;
-                // TODO: 输出其他相关信息，如保质期、出入库记录等
+                cout << "保质期：" << Util::formatTime(good.expirationDate) << endl;
+                cout << "出入库记录：" << endl;
+                for (const auto& record : good.inOutRecords) {
+                    cout << "    时间: " << Util::formatTime(record.first) << " 数量: " << record.second << endl;
+                }
             }
         }
     }
@@ -212,23 +241,40 @@ public:
     // 根据商品代码查询某个时间段的出入库信息
     void queryInOutRecords(const string& code, const string& startDate = "", const string& endDate = "") {
         int index = findGoodsIndex(code);
+        time_t start = Util::formatTime(startDate);
+        time_t end = Util::formatTime(endDate);
         if (index != -1) {
-            // TODO: 根据传入的时间范围筛选并输出出入库记录
             for (const auto& record : goodsList[index].inOutRecords) {
-                cout << "时间: " << ctime(&record.first);
-                cout << "数量: " << record.second << endl;
+                if ((start == time_t(-1) || record.first >= start) && (end == time_t(-1) || record.first <= end)) {
+                    cout << "时间: " << Util::formatTime(record.first);
+                    cout << "数量: " << record.second << endl;
+                }
             }
         }
     }
 
     // 按入库日期查询入库信息
     void queryInByDate(const string& date, const string& endDate = "") {
-        // TODO: 处理日期，遍历商品的出入库记录，筛选出符合条件的入库记录并输出
+        for (const auto& good : goodsList) {
+            for (const auto& record : good.inOutRecords) {
+                if (record.first == Util::formatTime(date) && record.second > 0) {
+                    cout << "商品名称: " << good.name << " 入库数量: " << record.second << endl;
+                }
+            }
+        }
+        cout << "-------------------------" << endl;
     }
 
     // 按出库日期查询出库信息
     void queryOutByDate(const string& date, const string& endDate = "") {
-        // TODO: 类似入库日期查询逻辑，处理并输出符合条件的出库记录
+        for (const auto& good : goodsList) {
+            for (const auto& record : good.inOutRecords) {
+                if (record.first == Util::formatTime(date) && record.second < 0) {
+                    cout << "商品名称: " << good.name << " 入库数量: " << record.second << endl;
+                }
+            }
+        }
+        cout << "-------------------------" << endl;
     }
 
     // 显示快到保质期的商品（m天后过期）
@@ -296,12 +342,12 @@ int main() {
             cin >> record.code;
             cout << "请输入入库时间（格式：xxxx-xx-xx xx:xx:xx）: ";
             string timeStr;
-            getchar();
+            getline(cin, timeStr);
             getline(cin, timeStr);
             time_t inTime = Util::formatTime(timeStr);
             while (inTime == time_t(-1)) {
                 cout << "时间格式错误，请重新输入: ";
-                cin >> timeStr;
+                getline(cin, timeStr);
                 inTime = Util::formatTime(timeStr);
             }
             record.inOutTime = inTime;
