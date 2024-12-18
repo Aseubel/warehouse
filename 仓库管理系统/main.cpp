@@ -114,7 +114,7 @@ public:
         ofstream file(fileName);
         if (file.is_open()) {
             for (const auto& good : goodsList) {
-                // 按格式将商品信息写入文件，例如：
+                // 按格式将商品信息写入文件
                 file << good.code << "," << good.name << "," << good.category << "," 
                     << good.price << "," << good.totalQuantity << "," << good.expirationDate << ",";
                 file << good.inOutRecords.size() << ",";
@@ -224,7 +224,7 @@ public:
         for (const auto& good : goodsList) {
             if (good.expirationDate < now) {
                 cout << "过期商品：" << good.name << endl;
-                // 可详细输出更多该商品信息
+                // 可详细输出更多该商品信息，但是我不知道输出什么
             }
         }
     }
@@ -452,6 +452,7 @@ int main() {
             string start, end;
             cout << "请输入开始时间（格式：xxxx-xx-xx xx:xx:xx，直接回车表示当天）: ";
             getline(cin, start);
+            getline(cin, start);
             cout << "请输入结束时间（直接回车表示与开始时间相同）: ";
             getline(cin, end);
             warehouse.queryInByDate(start, end);
@@ -460,6 +461,7 @@ int main() {
         case 9: {
             string start, end;
             cout << "请输入开始时间（格式：xxxx-xx-xx xx:xx:xx，直接回车表示当天）: ";
+            getline(cin, start);
             getline(cin, start);
             cout << "请输入结束时间（直接回车表示与开始时间相同）: ";
             getline(cin, end);
