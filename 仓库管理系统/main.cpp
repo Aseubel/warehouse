@@ -181,6 +181,9 @@ public:
             }
             newGood.expirationDate = expirationDate;
             goodsList.push_back(newGood);
+            if (record.quantity < newGood.minStock) {
+                cout << "警告：商品库存仍然低于最低库存阈值！" << endl;
+            }
         }
     }
 
@@ -209,6 +212,7 @@ public:
             cout << "商品类别: " << good.category << endl;
             cout << "商品价格: " << good.price << endl;
             cout << "商品总量: " << good.totalQuantity << endl;
+            cout << "最低库存阈值：" << good.minStock << endl;
             cout << "保质期：" << Util::formatTime(good.expirationDate) << endl;
             cout << "-------------------------" << endl;
         }
@@ -370,8 +374,8 @@ int main() {
         cout << "9. 查询出库信息（按日期）" << endl;
         cout << "10. 显示快到保质期商品" << endl;
         cout << "11. 排序功能" << endl;
-        cout << "12. 查询所有库存量低于阈值的商品" << endl;
-        cout << "13. 设置商品最低库存阈值" << endl;
+        cout << "12. 设置商品最低库存阈值" << endl;
+        cout << "13. 查询所有库存量低于阈值的商品" << endl;
         cout << "14. 退出" << endl;
         cout << "请输入你的选择: ";
         cin >> choice;
@@ -502,7 +506,7 @@ int main() {
             break;
         }
         case 13: {
-            warehouse.setMinStock(code, minStock);
+            warehouse.displayLowStockGoods();
             break;
         }
         case 14: {
@@ -514,7 +518,7 @@ int main() {
             cout << "无效的选择，请重新输入！" << endl;
         }
 
-    } while (choice != 12);
+    } while (choice != 14);
 
     return 0;
 }
