@@ -221,12 +221,14 @@ public:
     // 显示已过期商品信息
     void displayExpiredGoods() {
         time_t now = time(nullptr);
+        int cnt = 0;
         for (const auto& good : goodsList) {
             if (good.expirationDate < now) {
-                cout << "过期商品：" << good.name << endl;
+                cout << ++cnt << ". " << good.name << endl;
                 // 可详细输出更多该商品信息，但是我不知道输出什么
             }
         }
+        cout << "共有 " << cnt << " 个过期商品" << endl;
     }
 
     // 显示某一类别的商品信息
