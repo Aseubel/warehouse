@@ -414,7 +414,21 @@ int main() {
             InOutRecord record;
             cout << "请输入商品代码: ";
             cin >> record.code;
-            // 类似入库操作，输入出库相关信息，省略重复代码
+            cout << "请输入出库时间（格式：xxxx-xx-xx xx:xx:xx）: ";
+            string timeStr;
+            getline(cin, timeStr);
+            getline(cin, timeStr);
+            time_t outTime = Util::formatTime(timeStr);
+            while (outTime == time_t(-1)) {
+                cout << "时间格式错误，请重新输入: ";
+                getline(cin, timeStr);
+                outTime = Util::formatTime(timeStr);
+            }
+            record.inOutTime = outTime;
+            cout << "请输入出库数量: ";
+            cin >> record.quantity;
+            cout << "请输入经办人: ";
+            cin >> record.operatorName;
             warehouse.goodsOut(record);
             break;
         }
