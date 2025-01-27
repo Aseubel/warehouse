@@ -280,10 +280,10 @@ public:
     }
 
     // 按入库日期查询入库信息
-    void queryInByDate(const string& date, const string& endDate = "") {
+    void queryInByDate(const string& startDate, const string& endDate = "") {
         for (const auto& good : goodsList) {
             for (const auto& record : good.inOutRecords) {
-                if (record.first == Util::formatTime(date) && record.second > 0) {
+                if (record.first >= Util::formatTime(startDate) && record.first <= Util::formatTime(endDate) && record.second > 0) {
                     cout << "商品名称: " << good.name << " 入库数量: " << record.second << endl;
                 }
             }
@@ -292,11 +292,11 @@ public:
     }
 
     // 按出库日期查询出库信息
-    void queryOutByDate(const string& date, const string& endDate = "") {
+    void queryOutByDate(const string& startDate, const string& endDate = "") {
         for (const auto& good : goodsList) {
             for (const auto& record : good.inOutRecords) {
-                if (record.first == Util::formatTime(date) && record.second < 0) {
-                    cout << "商品名称: " << good.name << " 入库数量: " << record.second << endl;
+                if (record.first >= Util::formatTime(startDate) && record.first <= Util::formatTime(endDate) && record.second < 0) {
+                    cout << "商品名称: " << good.name << " 出库数量: " << -record.second << endl;
                 }
             }
         }
